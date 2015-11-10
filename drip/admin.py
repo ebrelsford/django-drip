@@ -51,7 +51,7 @@ class DripAdmin(admin.ModelAdmin):
         return render(request, 'drip/timeline.html', locals())
 
     def view_drip_email(self, request, drip_id, into_past, into_future, user_id):
-        from django.shortcuts import render, get_object_or_404
+        from django.shortcuts import get_object_or_404
         from django.http import HttpResponse
         drip = get_object_or_404(Drip, id=drip_id)
         User = get_user_model()
