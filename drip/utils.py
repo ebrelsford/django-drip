@@ -124,7 +124,7 @@ def get_user_model():
 def get_drip_models():
     from .models import Drip
     models = [Drip,]
-    for model_string in settings.DRIP_CLASSES:
+    for model_string in settings.DRIP_MODEL_CLASSES:
         app_label, model_name = model_string.split('.')
         models.append(apps.get_model(app_label=app_label, model_name=model_name))
     return models
