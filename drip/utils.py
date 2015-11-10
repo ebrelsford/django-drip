@@ -1,7 +1,6 @@
 import sys
 
 from django.db import models
-from django.db.models import ForeignKey, OneToOneField, ManyToManyField
 # try:
 #    from django.db.models.related import RelatedObject
 # except:

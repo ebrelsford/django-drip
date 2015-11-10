@@ -1,10 +1,8 @@
-from datetime import datetime, timedelta
-import random
+from datetime import datetime
 
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.utils.functional import cached_property
 
 from drip.utils import get_user_model
 
