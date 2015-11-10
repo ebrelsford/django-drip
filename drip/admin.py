@@ -4,9 +4,9 @@ from django import forms
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from drip.models import Drip, SentDrip, QuerySetRule
-from drip.drips import configured_message_classes, message_class_for
-from drip.utils import get_user_model
+from .models import Drip, SentDrip, QuerySetRule
+from .drips import configured_message_classes, message_class_for
+from .utils import get_user_model
 
 
 class QuerySetRuleInline(GenericTabularInline):
