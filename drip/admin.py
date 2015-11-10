@@ -2,12 +2,14 @@ import json
 
 from django import forms
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 
 from drip.models import Drip, SentDrip, QuerySetRule
 from drip.drips import configured_message_classes, message_class_for
 from drip.utils import get_user_model
 
-class QuerySetRuleInline(admin.TabularInline):
+
+class QuerySetRuleInline(GenericTabularInline):
     model = QuerySetRule
 
 
@@ -100,10 +102,12 @@ class DripAdmin(admin.ModelAdmin):
             )
         )
         return my_urls + urls
+
 admin.site.register(Drip, DripAdmin)
 
 
 class SentDripAdmin(admin.ModelAdmin):
     list_display = [f.name for f in SentDrip._meta.fields]
     ordering = ['-id']
+
 admin.site.register(SentDrip, SentDripAdmin)

@@ -3,6 +3,7 @@ import operator
 import functools
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.template import Context, Template
 from django.core.mail import EmailMultiAlternatives
@@ -16,7 +17,6 @@ try:
 except ImportError:
     from datetime import datetime
     conditional_now = datetime.now
-
 
 import logging
 
@@ -208,10 +208,12 @@ class DripBase(object):
         Do an exclude for all Users who have a SentDrip already.
         """
         target_user_ids = self.get_queryset().values_list('id', flat=True)
-        exclude_user_ids = SentDrip.objects.filter(date__lt=conditional_now(),
-                                                   drip=self.drip_model,
-                                                   user__id__in=target_user_ids)\
-                                           .values_list('user_id', flat=True)
+        exclude_user_ids = SentDrip.objects.filter(
+            date__lt=conditional_now(),
+            drip_content_type=ContentType.objects.get_for_model(self.drip_model),
+            drip_object_id=self.drip_model.pk,
+            user__id__in=target_user_ids
+        ).values_list('user_id', flat=True)
         self._queryset = self.get_queryset().exclude(id__in=exclude_user_ids)
 
     def send(self):

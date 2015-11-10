@@ -1,7 +1,10 @@
 import sys
 
+from django.apps import apps
+from django.conf import settings
 from django.db import models
 from django.db.models.fields.related import ForeignObjectRel
+
 
 # taking a nod from python-requests and skipping six
 _ver = sys.version_info
@@ -116,3 +119,12 @@ def get_user_model():
     except ImportError:
         from django.contrib.auth.models import User
     return User
+
+
+def get_drip_models():
+    from .models import Drip
+    models = [Drip,]
+    for model_string in settings.DRIP_CLASSES:
+        app_label, model_name = model_string.split('.')
+        models.append(apps.get_model(app_label=app_label, model_name=model_name))
+    return models

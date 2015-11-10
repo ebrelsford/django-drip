@@ -1,6 +1,9 @@
 from datetime import datetime
 
 from django.db import models
+from django.contrib.contenttypes.fields import (GenericForeignKey,
+                                                GenericRelation)
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
@@ -10,7 +13,8 @@ from drip.utils import get_user_model
 # https://bitbucket.org/schinckel/django-timedelta-field/
 import timedelta as djangotimedelta
 
-class Drip(models.Model):
+
+class BaseDripModel(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     lastchanged = models.DateTimeField(auto_now=True)
 
@@ -31,21 +35,33 @@ class Drip(models.Model):
         help_text='You will have settings and user in the context.')
     message_class = models.CharField(max_length=120, blank=True, default='default')
 
+    queryset_rules = GenericRelation('drip.QuerySetRule')
+
     @property
     def drip(self):
-        from drip.drips import DripBase
+        return self.drip_class(
+            drip_model=self,
+            name=self.name,
+            from_email=self.from_email if self.from_email else None,
+            from_email_name=self.from_email_name if self.from_email_name else None,
+            subject_template=self.subject_template if self.subject_template else None,
+            body_template=self.body_html_template if self.body_html_template else None
+        )
 
-        drip = DripBase(drip_model=self,
-                        name=self.name,
-                        from_email=self.from_email if self.from_email else None,
-                        from_email_name=self.from_email_name if self.from_email_name else None,
-                        subject_template=self.subject_template if self.subject_template else None,
-                        body_template=self.body_html_template if self.body_html_template else None)
-        return drip
+    @property
+    def drip_class(self):
+        from drip.drips import DripBase
+        return DripBase
 
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        abstract = True
+
+
+class Drip(BaseDripModel):
+    pass
 
 
 class SentDrip(models.Model):
@@ -54,7 +70,9 @@ class SentDrip(models.Model):
     """
     date = models.DateTimeField(auto_now_add=True)
 
-    drip = models.ForeignKey('drip.Drip', related_name='sent_drips')
+    drip_content_type = models.ForeignKey(ContentType)
+    drip_object_id = models.PositiveIntegerField()
+    drip = GenericForeignKey('drip_content_type', 'drip_object_id')
     user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), related_name='sent_drips')
 
     subject = models.TextField()
@@ -94,7 +112,9 @@ class QuerySetRule(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     lastchanged = models.DateTimeField(auto_now=True)
 
-    drip = models.ForeignKey(Drip, related_name='queryset_rules')
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     method_type = models.CharField(max_length=12, default='filter', choices=METHOD_TYPES)
     field_name = models.CharField(max_length=128, verbose_name='Field name of User')
